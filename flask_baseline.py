@@ -72,6 +72,30 @@ day_template = {
         'snowAmount': None  #same here
     }
 
+hourly_template = {
+        'datetime': None,
+        'temp': None,
+        'feels': None,
+        'dewPoint': None,
+        'humidity': None,
+        'uvIndex': None,
+        'pressure': None,
+        'windSpeed': None,
+        'windDir': None,
+        'windGust': None,
+        'cloudCover': None,
+        'conditionMain': None,
+        'conditionDesc': None,
+        'conditionImageCode': None, #unsure how to build these
+        'pop': None,
+        'rainAmount': None, #these don't seem to be as values, rather some sort of percent?
+        'snowAmount': None  #same here
+}
+
+hourly_forecast = {
+    'units': None,
+}
+
 day_forecast = {
     'units': None,
 }
@@ -83,6 +107,7 @@ current = {
     'tzOffset': None,       # seconds from UTC, so times show in the city's local time
     'temp': None,
     'feels': None,
+    'dewPoint': None,
     'pressure': None,
     'humidity': None,
     'visibility': None,
@@ -91,7 +116,8 @@ current = {
     'windGust': None,
     'cloudCover': None,
     'uvIndex': None,
-    'conditionDesc': None,  # "clear sky" etc. under the big temperature
+    'conditionMain': None,
+    'conditionDesc': None
 }
 
 def get_current(lat, lon, units):
@@ -102,9 +128,11 @@ def get_current(lat, lon, units):
     current['tzOffset'] = data.get('timezone_offset', 0)
 
     main = data['data'][0]
+    weather = main['weather'][0]
     current['datetime'] = main['dt']
     current['temp'] = main['temp']
     current['feels'] = main['feels_like']
+    current['dewPoint'] = main['dew_point']
     current['pressure'] = main['pressure']
     current['humidity'] = main['humidity']
     current['visibility'] = main.get('visibility', None)
@@ -113,8 +141,42 @@ def get_current(lat, lon, units):
     current['windGust'] = main.get('wind_gust', None)
     current['cloudCover'] = main['clouds']
     current['uvIndex'] = main.get('uvi', None)
-    current['conditionDesc'] = main['weather'][0]['description']
+    current['conditionMain'] = weather.get('main', None)
+    current['conditionDesc'] = weather.get('description', None)
     return current
+
+def get_1hour(lat, lon, units):
+    r = requests.get(f'https://api.openweathermap.org/data/4.0/onecall/timeline/1h?lat={lat}&lon={lon}&units={units}&appid={api_key}')
+    data = r.content.strip().decode('utf-8')
+    data = json.loads(data)
+    
+    hourly_forecast['units'] = units
+    for i in range(0, 18): #first 18 hours
+        hour = hourly_template.copy()
+        
+        main = data['data'][i + 1] #adding 1 here so that it omits the hour 0 (which will be the current ob.) , but the hourly_forecast dictionary still starts at 0
+        weather = main['weather'][0]
+        
+        hour['datetime'] = main['dt']
+        hour['temp'] = main['temp']
+        hour['feels'] = main['feels_like']
+        hour['dewPoint'] = main['dew_point']
+        hour['pressure'] = main['pressure']
+        hour['humidity'] = main['humidity']
+        hour['visibility'] = main['visibility']
+        hour['windSpeed'] = main['wind_speed']
+        hour['windDir'] = main['wind_deg']
+        hour['windGust'] = main.get('wind_gust', None)
+        hour['cloudCover'] = main['clouds']
+        hour['uvIndex'] = main.get('uvi', None)
+        hour['conditionMain'] = weather['main']
+        hour['conditionDesc'] = weather['description']
+        hour['pop'] = main.get('pop', None)
+        
+        hourly_forecast[i] = hour
+    return hourly_forecast
+        
+    
 
 def get_1day(lat, lon, units): #daily forecasts
     r = requests.get(f'https://api.openweathermap.org/data/4.0/onecall/timeline/1day?lat={lat}&lon={lon}&units={units}&appid={api_key}')
