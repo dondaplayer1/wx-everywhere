@@ -1,4 +1,4 @@
-import requests, json, os, csv
+import requests, json, os, csv, re
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from pathlib import Path
@@ -231,6 +231,32 @@ def local_time(timestamp, offset, fmt):
     'converts epoch to a cities local time'
     return datetime.fromtimestamp(timestamp, timezone(timedelta(seconds=offset))).strftime(fmt)
 
+def is_old_browser():
+    'True for browsers too old for bootstrap 5, like an iPhone 4 (iOS 7)'
+    ua = request.headers.get('User-Agent', '')
+
+    # iPhone/iPad/iPod say "iPhone OS 7_1_2"; bootstrap 5 needs iOS 10 or newer
+    ios = re.search(r'(iPhone|iPad|iPod).* OS (\d+)_', ua)
+    if ios:
+        return int(ios.group(2)) < 10
+
+    # old Android stock browsers say "Android 4.4"
+    android = re.search(r'Android (\d+)', ua)
+    if android:
+        return int(android.group(1)) < 5
+
+    # Internet Explorer, Opera Mini, old feature phones and BlackBerrys
+    for name in ['MSIE ', 'Trident/', 'Opera Mini', 'MIDP', 'BlackBerry', 'BB10', 'Windows Phone', 'Symbian']:
+        if name in ua:
+            return True
+    return False
+
+def page(name):
+    'picks templates/lite/<name> for old browsers, otherwise the normal template'
+    if is_old_browser():
+        return 'lite/' + name
+    return name
+
 
 # web pages
 @app.route("/favicon.ico")
@@ -241,7 +267,7 @@ def favicon():
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template(page('index.html'))
 
 @app.route("/get/conditions")
 def get_conditions():
@@ -251,7 +277,7 @@ def get_conditions():
     if request.args.get('action') == 'locate':
         result = get_location(request.remote_addr)
         if result == "Unknown":
-            return render_template('index.html', error="Couldn't find your location. Try typing a city instead.")
+            return render_template(page('index.html'), error="Couldn't find your location. Try typing a city instead.")
         country, lat, lon, city_name = result
 
     # airport code, like MOP or KMOP
@@ -263,7 +289,7 @@ def get_conditions():
         r = requests.get('https://api.openweathermap.org/geo/1.0/direct', params={'q': q, 'limit': 1, 'appid': api_key})
         results = r.json()
         if not q or not isinstance(results, list) or len(results) == 0:
-            return render_template('index.html', error=f'No match for "{q}".', q=q)
+            return render_template(page('index.html'), error=f'No match for "{q}".', q=q)
         city_name = results[0]['name']
         lat = results[0]['lat']
         lon = results[0]['lon']
@@ -339,7 +365,7 @@ def conditions():
             'remarks': f'UV Index; {round(hour['uvIndex'], 0)}'
         })
 
-    return render_template('conditions.html',
+    return render_template(page('conditions.html'),
         cityName = city_name,
         tempF = f"{round(now['temp'])}{temp_unit}",
         feelsF = f"{round(now['feels'])}{temp_unit}",

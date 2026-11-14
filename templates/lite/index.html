@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WeatherEverywhere</title>
+  {% include "lite/_style.html" %}
+</head>
+<body>
+  <div class="bar">
+    <a class="brand" href="{{ url_for('index') }}">WeatherEverywhere</a>
+    <a href="{{ url_for('index') }}">Home</a>
+  </div>
+
+  <div class="wrap">
+    <h1>Get Your Weather</h1>
+    <p class="note">City name, Postal or airport code - everywhere in the world.</p>
+
+    {% if error %}
+    <div class="alert">{{ error }}</div>
+    {% endif %}
+
+    <form action="{{ url_for('get_conditions') }}" method="get">
+      <p><input type="text" name="q" value="{{ q or '' }}" placeholder="ex. Mount Pleasant, MI"></p>
+      {# Submit is first so Enter searches; float puts it on the right. #}
+      <button type="submit" name="action" value="search" style="float: right; width: 48%;">Submit</button>
+      <button type="submit" name="action" value="locate" style="width: 48%;">Locate me</button>
+    </form>
+
+    <p class="note" style="margin-top: 24px;">Weather data; OpenWeatherMap | Airport data; OurAirports</p>
+  </div>
+</body>
+</html>
