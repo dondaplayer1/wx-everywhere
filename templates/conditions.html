@@ -30,6 +30,7 @@
         <table class="table table-sm mb-0">
           <tbody>
             <tr><th scope="row">Feels like</th><td>{{ feelsF }}</td></tr>
+            <tr><th scope="row">Dewpoint</th><td>{{ dewpoint }}</td></tr>
             <tr><th scope="row">Humidity</th><td>{{ relHum }}%</td></tr>
             <tr><th scope="row">Wind</th><td>{{ windReport }}</td></tr>
             <tr><th scope="row">Pressure</th><td>{{ pressure }}</td></tr>
@@ -41,7 +42,7 @@
     </div>
   </main>
   <main class="container">
-    <h1 class="h4">7-Day Forecast &mdash; {{ cityName }}</h1>
+    <h1 class="h4">7-Day Forecast - {{ cityName }}</h1>
 
     <table class="table table-striped">
       <thead>
