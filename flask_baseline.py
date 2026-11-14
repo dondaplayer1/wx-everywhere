@@ -1,40 +1,33 @@
-import requests, ipinfo, json, os
+import requests, json, os, csv
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from pathlib import Path
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, redirect, url_for
 
 cwd = Path(os.getcwd())
 env_path = cwd / ".env"
 load_dotenv(override=True)
 load_dotenv(env_path)
 
-app = Flask(__name__)
+# bootstrap lives in templates/css, so serve that folder at /css
+app = Flask(__name__, static_folder='templates/css', static_url_path='/css')
 
-# Basic route
-
-# Dynamic route with a variable converter
-#@app.route("/user/<username>")
-#def show_user(username):
-#    return f"Hello, {username}!"
-
-# Handling GET and POST requests (JSON API example)
-#@app.route("/api/echo", methods=["POST"])
-#def echo():
-#    data = request.get_json()
-#    return jsonify({"received": data}), 201
-
-#api_key = '1261cbdbaf6003f3b570023a4bc68152'
 api_key = os.getenv('OWM_KEY')
-ipinfo_key = os.getenv('IPINFO_KEY')
-'''
-handler = ipinfo.getHandler(ipinfo_key)
 
-details = handler.getDetails()
 
-lat, lon = details.loc.split(',')
-'''
-#user_ip = request.remote_addr
-def get_location(ip_address):    
+# load airport data
+airports = {}
+with open('data/airports.csv', newline='', encoding='utf-8') as f:
+    for row in csv.DictReader(f):
+        if row['type'] in ('large_airport', 'medium_airport', 'small_airport'):
+            place = (row['municipality'] or row['name'], row['latitude_deg'], row['longitude_deg'], row['iso_country'])
+            if row['iata_code']:
+                airports[row['iata_code'].upper()] = place  # AUS
+            if row['icao_code']:
+                airports[row['icao_code'].upper()] = place  # KAUS
+
+# geolocation function
+def get_location(ip_address):
     'returns country code, lat, lon, city name'
     try:
         response = requests.get("http://ip-api.com/json/{}".format(ip_address))
@@ -110,7 +103,8 @@ day_forecast = {
 #the current conditions/obs
 current = {
     'units': None,
-    'datetime': None,
+    'datetime': None,       # for "Updated ..." on the page
+    'tzOffset': None,       # seconds from UTC, so times show in the city's local time
     'temp': None,
     'feels': None,
     'dewPoint': None,
@@ -131,7 +125,8 @@ def get_current(lat, lon, units):
     data = r.content.strip().decode('utf-8')
     data = json.loads(data)
     current['units'] = units
-    
+    current['tzOffset'] = data.get('timezone_offset', 0)
+
     main = data['data'][0]
     weather = main['weather'][0]
     current['datetime'] = main['dt']
@@ -140,7 +135,7 @@ def get_current(lat, lon, units):
     current['dewPoint'] = main['dew_point']
     current['pressure'] = main['pressure']
     current['humidity'] = main['humidity']
-    current['visibility'] = main['visibility']
+    current['visibility'] = main.get('visibility', None)
     current['windSpeed'] = main['wind_speed']
     current['windDir'] = main['wind_deg']
     current['windGust'] = main.get('wind_gust', None)
@@ -190,12 +185,12 @@ def get_1day(lat, lon, units): #daily forecasts
     day_forecast['units'] = units
     for i in range(0,8):
         daily = day_template.copy()
-        
+
         main = data['data'][i]
         temp = main['temp']
         feels = main['feels_like']
         weather = main['weather'][0]
-        
+
         daily['datetime'] = main['dt']
         daily['sunrise'] = main['sunrise']
         daily['sunset'] = main['sunset']
@@ -220,40 +215,111 @@ def get_1day(lat, lon, units): #daily forecasts
         daily['conditionMain'] = weather['main']
         daily['conditionDesc'] = weather['description']
         daily['pop'] = main['pop']
-        
+
         day_forecast[i] = daily
     return day_forecast
-        
 
-get_1day(43.5, -101.5, 'imperial')
-print(day_forecast)
-get_current(43.5, -101.5, 'imperial')
-print(current)
-get_1hour(43.5, -101.5, 'imperial')
-print(hourly_forecast)
 
-'''
+#helper funcs
+compass = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW']
+
+def wind_dir(degrees):
+    'converts direction in degrees to a compass dir'
+    return compass[round(degrees / 22.5) % 16]
+
+def local_time(timestamp, offset, fmt):
+    'converts epoch to a cities local time'
+    return datetime.fromtimestamp(timestamp, timezone(timedelta(seconds=offset))).strftime(fmt)
+
+
+# web pages
 @app.route("/")
-def home():
-    user_ip = request.remote_addr
-    country, lat, lon, city_name = get_location(user_ip)
-    if country == 'US':
-        default_units = 'imperial'
+def index():
+    return render_template('index.html')
+
+@app.route("/get/conditions")
+def get_conditions():
+    q = request.args.get('q', '').strip()
+
+    # "locate me" button to geolocate the visitor
+    if request.args.get('action') == 'locate':
+        result = get_location(request.remote_addr)
+        if result == "Unknown":
+            return render_template('index.html', error="Couldn't find your location. Try typing a city instead.")
+        country, lat, lon, city_name = result
+
+    # airport code, like MOP or KMOP
+    elif q.upper() in airports:
+        city_name, lat, lon, country = airports[q.upper()]
+
+    # anything else, ask OpenWeatherMap geocode api (city name, "City, ST, US", "City, Country")
     else:
-        default_units = 'metric'
-    
-    temp, feels, humidity, presMB, visibility, clouds, windDir, windSpeed, windGust = get_current(lat, lon, default_units)
-    return(f"""
-    <title>Weather for {city_name}</title>
-    <h1>Weather for {city_name}</title>
-    <p>Temperature : {temp}
-    Feels like : {feels}
-    Relative Humidity : {humidity}
-    Pressure : {presMB}
-    Visibility : {visibility}
-    Sky Condition : {str(clouds)}
-    Wind : {windDir} at {windSpeed} {windGust}</p> """) 
+        r = requests.get('https://api.openweathermap.org/geo/1.0/direct', params={'q': q, 'limit': 1, 'appid': api_key})
+        results = r.json()
+        if not q or not isinstance(results, list) or len(results) == 0:
+            return render_template('index.html', error=f'No match for "{q}".', q=q)
+        city_name = results[0]['name']
+        lat = results[0]['lat']
+        lon = results[0]['lon']
+        country = results[0]['country']
+
+    return redirect(url_for('conditions', lat=lat, lon=lon, name=city_name, country=country))
+
+
+@app.route("/conditions")
+def conditions():
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+    city_name = request.args.get('name', '')
+    country = request.args.get('country', '')
+    if not lat or not lon:
+        return redirect(url_for('index'))
+
+    if country == 'US':
+        units = 'imperial'
+        temp_unit, speed_unit = '°F', 'mph'
+    else:
+        units = default_units
+        temp_unit, speed_unit = '°C', 'm/s'
+
+    now = get_current(lat, lon, units)
+    days = get_1day(lat, lon, units)
+    offset = now['tzOffset']
+
+    wind_report = f"{wind_dir(now['windDir'])} at {round(now['windSpeed'])} {speed_unit}"
+    if now['windGust']:
+        wind_report += f", gusting to {round(now['windGust'])} {speed_unit}"
+
+    # create day dict
+    city_forecast = []
+    for i in range(0, 7):
+        day = days[i]
+        city_forecast.append({
+            'dayName': local_time(day['datetime'], 0, '%A'),  # forecast days are stamped midnight UTC, so read them in UTC
+            'highT': f"{round(day['high'])}{temp_unit}",
+            'lowT': f"{round(day['low'])}{temp_unit}",
+            'wxType': day['conditionDesc'].capitalize(),
+            'precip': round(day['pop'] * 100), #make this a percent
+            'windDir': wind_dir(day['windDir']),
+            'windSpeed': f"{round(day['windSpeed'])} {speed_unit}",
+            'sunriseTime': local_time(day['sunrise'], offset, '%I:%M %p'), #create readable timestamp for sunrise
+            'sunsetTime': local_time(day['sunset'], offset, '%I:%M %p'), #and sunset, from epoch
+            'uvIndex': day['uvIndex'],
+        })
+
+    return render_template('conditions.html',
+        cityName = city_name,
+        tempF = f"{round(now['temp'])}{temp_unit}",
+        feelsF = f"{round(now['feels'])}{temp_unit}",
+        wxDesc = now['conditionDesc'].capitalize(),
+        relHum = now['humidity'],
+        windReport = wind_report,
+        pressure = f"{now['pressure']} mb",
+        visibility = f"{now['visibility']} m" if now['visibility'] is not None else 'N/A', #error checking
+        updateTime = local_time(now['datetime'], offset, '%a %I:%M %p'), #turn date into local time using helper
+        cityForecast = city_forecast,
+    )
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8080, debug=True)
-'''

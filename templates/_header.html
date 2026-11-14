@@ -1,0 +1,19 @@
+  <header class="bg-primary text-white py-2 mb-3">
+    <div class="container d-flex flex-wrap align-items-center gap-2">
+      <a href="{{ url_for('index') }}" class="text-white text-decoration-none fs-4 fw-bold">WeatherEverywhere</a>
+      <nav class="nav">
+        <a class="nav-link text-white" href="{{ url_for('index') }}">Home</a>
+      </nav>
+
+      {% if request.endpoint == 'conditions' %}
+      {# Quick search on the conditions page; full width on phones, right-aligned on wider screens. #}
+      <form action="{{ url_for('get_conditions') }}" method="get" class="ms-md-auto col-12 col-md-auto" role="search">
+        <div class="input-group input-group-sm">
+          <label for="hq" class="visually-hidden">Location</label>
+          <input type="search" id="hq" name="q" class="form-control" placeholder="Another location" autocomplete="off">
+          <button type="submit" name="action" value="search" class="btn btn-light">Go</button>
+        </div>
+      </form>
+      {% endif %}
+    </div>
+  </header>
