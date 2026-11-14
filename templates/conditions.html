@@ -24,10 +24,14 @@
 
     <div class="card mb-3">
       <div class="card-header">Current Conditions - {{ cityName }}</div>
+      <div class="card-body d-flex align-items-center">
+        <div>
+          <p class="display-4 mb-0">{{ tempF }}</p>
+          <p class="lead">{{ wxDesc }}</p>
+        </div>
+        <img src={{ currentImg }} alt = 'current_icon' class = 'me-3'>
+      </div>
       <div class="card-body">
-        <p class="display-4 mb-0">{{ tempF }}</p>
-        <p class="lead">{{ wxDesc }}</p>
-        <img src={{ currentImg }} alt = 'current_icon'>
         <table class="table table-sm mb-0">
           <tbody>
             <tr><th scope="row">Feels like</th><td>{{ feelsF }}</td></tr>
