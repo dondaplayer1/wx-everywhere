@@ -2,7 +2,7 @@ import requests, json, os, csv
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from pathlib import Path
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, render_template, redirect, url_for, send_from_directory
 
 cwd = Path(os.getcwd())
 env_path = cwd / ".env"
@@ -171,7 +171,7 @@ def get_1hour(lat, lon, units):
         hour['uvIndex'] = main.get('uvi', None)
         hour['conditionMain'] = weather['main']
         hour['conditionDesc'] = weather['description']
-        hour['pop'] = main.get('pop', None)
+        hour['pop'] = main.get('pop', 0)
         
         hourly_forecast[i] = hour
     return hourly_forecast
@@ -233,6 +233,12 @@ def local_time(timestamp, offset, fmt):
 
 
 # web pages
+@app.route("/favicon.ico")
+def favicon():
+    # browsers ask for /favicon.ico on their own, so no <link> tag is needed in the templates
+    return send_from_directory('assets', 'wx_everywhere.png', mimetype='image/png')
+
+
 @app.route("/")
 def index():
     return render_template('index.html')
@@ -284,6 +290,7 @@ def conditions():
 
     now = get_current(lat, lon, units)
     days = get_1day(lat, lon, units)
+    hours = get_1hour(lat, lon, units)
     offset = now['tzOffset']
 
     wind_report = f"{wind_dir(now['windDir'])} at {round(now['windSpeed'])} {speed_unit}"
@@ -307,10 +314,36 @@ def conditions():
             'uvIndex': day['uvIndex'],
         })
 
+    hourly_forecast = []
+    for i in range(0, 18):
+        hour = hours[i]
+        time = local_time(hour['datetime'], 0, '%I %p')
+        if time[0:1] == '0':
+            time = time[1:]
+        else:
+            time = time
+        temp = f"{round(hour['temp'])}{temp_unit}"
+        feels = f"{round(hour['feels'])}{temp_unit}"
+        windReport = f"{wind_dir(hour['windDir'])} at {round(hour['windSpeed'])} {speed_unit}"
+        print(round(hour['pop'] * 100))
+        if not abs(int(temp[:-2]) - int(feels[:-2])) <= 5:
+            temp = f'{temp}, Feels Like {feels}'
+        else:
+            temp = temp
+        hourly_forecast.append({
+            'time': time,
+            'temp': temp,
+            'conditionMain': hour['conditionMain'].capitalize(),
+            'windReport': windReport,
+            'pops': round(hour['pop'] * 100),
+            'remarks': f'UV Index; {round(hour['uvIndex'], 0)}'
+        })
+
     return render_template('conditions.html',
         cityName = city_name,
         tempF = f"{round(now['temp'])}{temp_unit}",
         feelsF = f"{round(now['feels'])}{temp_unit}",
+        dewpoint = f"{round(now['dewPoint'])}{temp_unit}",
         wxDesc = now['conditionDesc'].capitalize(),
         relHum = now['humidity'],
         windReport = wind_report,
@@ -318,6 +351,7 @@ def conditions():
         visibility = f"{now['visibility']} m" if now['visibility'] is not None else 'N/A', #error checking
         updateTime = local_time(now['datetime'], offset, '%a %I:%M %p'), #turn date into local time using helper
         cityForecast = city_forecast,
+        hourlyForecast = hourly_forecast
     )
 
 

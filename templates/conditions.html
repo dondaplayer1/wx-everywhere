@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WeatherEverywhere - Weather for {{ cityName }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <link rel="icon" type="image/png" href="/favicon.ico">
 </head>
 <body>
 {% include "_header.html" %}
@@ -41,6 +42,20 @@
       <div class="card-footer text-body-secondary small">Updated {{ updateTime }}</div>
     </div>
   </main>
+  <main class="container">
+    <h1 class="h4">Hourly Forecast - {{ cityName }}</h1>
+    <table class="table table-striped">
+      <thead>
+        <tr><th scope="col">Time</th><th>Temperature</th><th>Conditions</th><th>Wind</th><th>Precipitation</th></tr>
+      </thead>
+      <tbody>
+        {% for hour in hourlyForecast %}
+            <tr><td>{{ hour.time }}</td><td>{{ hour.temp }} </td><td>{{ hour.conditionMain }}</td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+
   <main class="container">
     <h1 class="h4">7-Day Forecast - {{ cityName }}</h1>
 
