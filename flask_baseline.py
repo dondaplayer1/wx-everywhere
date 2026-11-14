@@ -351,7 +351,6 @@ def conditions():
         temp = f"{round(hour['temp'])}{temp_unit}"
         feels = f"{round(hour['feels'])}{temp_unit}"
         windReport = f"{wind_dir(hour['windDir'])} at {round(hour['windSpeed'])} {speed_unit}"
-        print(round(hour['pop'] * 100))
         if not abs(int(temp[:-2]) - int(feels[:-2])) <= 5:
             temp = f'{temp}, Feels Like {feels}'
         else:
