@@ -117,7 +117,8 @@ current = {
     'cloudCover': None,
     'uvIndex': None,
     'conditionMain': None,
-    'conditionDesc': None
+    'conditionDesc': None,
+    'iconUrl': None
 }
 
 def get_current(lat, lon, units):
@@ -143,6 +144,8 @@ def get_current(lat, lon, units):
     current['uvIndex'] = main.get('uvi', None)
     current['conditionMain'] = weather.get('main', None)
     current['conditionDesc'] = weather.get('description', None)
+    iconCode = weather.get('icon', None)
+    current['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t@4x.png' #4x for higher res image
     return current
 
 def get_1hour(lat, lon, units):
@@ -214,7 +217,7 @@ def get_1day(lat, lon, units): #daily forecasts
         daily['cloudCover'] = main['clouds']
         daily['conditionMain'] = weather['main']
         daily['conditionDesc'] = weather['description']
-        daily['pop'] = main['pop']
+        daily['pop'] = main.get('pop', 0) #if no pops listed put it as 0
 
         day_forecast[i] = daily
     return day_forecast
@@ -369,6 +372,7 @@ def conditions():
         tempF = f"{round(now['temp'])}{temp_unit}",
         feelsF = f"{round(now['feels'])}{temp_unit}",
         dewpoint = f"{round(now['dewPoint'])}{temp_unit}",
+        currentImg = now['iconUrl'],
         wxDesc = now['conditionDesc'].capitalize(),
         relHum = now['humidity'],
         windReport = wind_report,
