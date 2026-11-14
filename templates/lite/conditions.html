@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WeatherEverywhere - Weather for {{ cityName }}</title>
+  {% include "lite/_style.html" %}
+</head>
+<body>
+  <div class="bar">
+    <a class="brand" href="{{ url_for('index') }}">WeatherEverywhere</a>
+    <a href="{{ url_for('index') }}">Home</a>
+    <form action="{{ url_for('get_conditions') }}" method="get" style="margin: 6px 0 0;">
+      <input type="text" name="q" placeholder="Another location" style="width: 70%;">
+      <button type="submit" name="action" value="search">Go</button>
+    </form>
+  </div>
+
+  <div class="wrap">
+    <h1>Current Conditions - {{ cityName }}</h1>
+    <p class="big">{{ tempF }}</p>
+    <p>{{ wxDesc }}</p>
+    <table>
+      <tr><th>Feels like</th><td>{{ feelsF }}</td></tr>
+      <tr><th>Dewpoint</th><td>{{ dewpoint }}</td></tr>
+      <tr><th>Humidity</th><td>{{ relHum }}%</td></tr>
+      <tr><th>Wind</th><td>{{ windReport }}</td></tr>
+      <tr><th>Pressure</th><td>{{ pressure }}</td></tr>
+      <tr><th>Visibility</th><td>{{ visibility }}</td></tr>
+    </table>
+    <p class="note">Updated {{ updateTime }}</p>
+
+    <h2>Hourly Forecast</h2>
+    <table>
+      <tr><th>Time</th><th>Temp</th><th>Conditions</th><th>Wind</th><th>Precip</th></tr>
+      {% for hour in hourlyForecast %}
+      <tr><td>{{ hour.time }}</td><td>{{ hour.temp }}</td><td>{{ hour.conditionMain }}</td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
+      {% endfor %}
+    </table>
+
+    <h2>7-Day Forecast</h2>
+    <table>
+      <tr><th>Day</th><th>Hi / Lo</th><th>Conditions</th><th>Rain</th></tr>
+      {% for day in cityForecast %}
+      <tr><td>{{ day.dayName }}</td><td>{{ day.highT }} / {{ day.lowT }}</td><td>{{ day.wxType }}</td><td>{{ day.precip }}%</td></tr>
+      {% endfor %}
+    </table>
+
+    <h2>Detailed Text Forecast</h2>
+    <dl>
+      {% for day in cityForecast %}
+      <dt><b>{{ day.dayName }}</b></dt>
+      <dd>{{ day.wxType }}. High around {{ day.highT }}. Low around {{ day.lowT }}. {{ day.windDir }} winds at {{ day.windSpeed }}. {{ 'Chance of precipitation ' ~ day.precip ~ '%.' if day.precip > 0 else '' }}</dd>
+      <dd class="note">Sunrise: {{ day.sunriseTime }} | Sunset: {{ day.sunsetTime }} | UV Index: {{ day.uvIndex }}</dd>
+      {% endfor %}
+    </dl>
+
+    <p class="note"><a href="{{ request.full_path }}">Refresh</a> | <a href="{{ url_for('index') }}">Change location</a></p>
+  </div>
+</body>
+</html>
