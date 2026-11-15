@@ -6,6 +6,12 @@
   <title>WeatherEverywhere - Weather for {{ cityName }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
   <link rel="icon" type="image/png" href="/favicon.ico">
+  <style>
+    .table td img {
+      height: 2.25em;
+      width: auto;
+    }
+  </style>
 </head>
 <body>
 {% include "_header.html" %}
@@ -44,12 +50,12 @@
   </main>
   <main class="container">
     <h1 class="h4">Hourly Forecast - {{ cityName }}</h1>
-    <table class="table table-striped align-middle">
+    <table class="table table-striped align-middle lh-1">
       <thead>
         <tr>
           <th scope="col" class="text-nowrap" style="width: 20%;">Time</th>
           <th scope="col" class="text-nowrap" style="width: 20%;">Temp</th>
-          <th scope="col" class="text-nowrap">Conditions</th>
+          <th scope="col" class="text-nowrap">Sky</th>
           <th scope="col" class="text-nowrap" style="width: 20%;">Wind</th>
           <th scope="col" class="text-nowrap" style="width: 20%;">Precip</th>
         </tr>
