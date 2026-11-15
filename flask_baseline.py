@@ -312,11 +312,14 @@ def get_conditions():
         result = get_location(request.remote_addr)
         if result == "Unknown":
             return render_template(page('index.html'), error="Couldn't find your location. Try typing a city instead.")
-        country, lat, lon, city_name = result
+        fullCountry, lat, lon, city_name = result
+        state = None
 
     # airport code, like MOP or KMOP
     elif q.upper() in airports:
         city_name, lat, lon, country = airports[q.upper()]
+        fullCountry = countries.get(country).name
+        state = None
 
     # anything else, ask OpenWeatherMap geocode api (city name, "City, ST, US", "City, Country")
     else:
@@ -386,12 +389,12 @@ def conditions():
         else:
             time = time
         temp = f"{round(hour['temp'])}{temp_unit}"
-        feels = f"{round(hour['feels'])}{temp_unit}"
+        feels = f'{round(hour['feels'])}'
         windReport = f"{round(hour['windSpeed'])} {speed_unit} {wind_dir(hour['windDir'])}"
-        if not abs(int(temp[:-2]) - int(feels[:-2])) <= 5:
-            temp = f'{temp}, Feels Like {feels}'
+        if not abs(int(temp[:-2]) - int(feels)) <= 5:
+            feels = f'Feels {feels}'
         else:
-            temp = temp
+            feels = ''
             
         #otherwise the main conditions are super boring
         if hour['conditionMain'] == 'Clear':
@@ -401,6 +404,7 @@ def conditions():
         hourly_forecast.append({
             'time': time,
             'temp': temp,
+            'feels': feels,
             'conditionMain': cond,
             'iconUrl': hour['iconUrl'], 
             'windReport': windReport,
@@ -417,7 +421,6 @@ def conditions():
         # NWS text is hard-wrapped; blank lines split paragraphs, single line breaks are just wrapping
         alert['paragraphs'] = [p.replace('\n', ' ') for p in alert['alertDesc'].split('\n\n')]
         alerts.append(alert)
-
     return render_template(page('conditions.html'),
         cityName = city_name,
         stateName = state,
