@@ -335,7 +335,7 @@ def conditions():
     for i in range(0, 7):
         day = days[i]
         city_forecast.append({
-            'dayName': local_time(day['datetime'], 0, '%A'),  # forecast days are stamped midnight UTC, so read them in UTC
+            'dayName': local_time(day['datetime'], offset, '%A'),  # forecast days are stamped midnight UTC, so read them in UTC
             'highT': f"{round(day['high'])}{temp_unit}",
             'lowT': f"{round(day['low'])}{temp_unit}",
             'wxType': day['conditionDesc'].capitalize(),
@@ -350,7 +350,7 @@ def conditions():
     hourly_forecast = []
     for i in range(0, 18):
         hour = hours[i]
-        time = local_time(hour['datetime'], 0, '%I %p')
+        time = local_time(hour['datetime'], offset, '%I %p')
         if time[0:1] == '0':
             time = time[1:]
         else:
