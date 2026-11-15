@@ -3,6 +3,7 @@ from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 from pathlib import Path
 from flask import Flask, request, render_template, redirect, url_for, send_from_directory
+from iso3166 import countries
 
 cwd = Path(os.getcwd())
 env_path = cwd / ".env"
@@ -326,9 +327,11 @@ def get_conditions():
         city_name = results[0]['name']
         lat = results[0]['lat']
         lon = results[0]['lon']
-        country = results[0]['country']
+        country = results[0]['country'] #two letter country code
+        fullCountry = countries.get(country).name
+        state = results[0]['state']
 
-    return redirect(url_for('conditions', lat=lat, lon=lon, name=city_name, country=country))
+    return redirect(url_for('conditions', lat=lat, lon=lon, name=city_name, country=fullCountry, state=state))
 
 
 @app.route("/conditions")
@@ -337,10 +340,11 @@ def conditions():
     lon = request.args.get('lon')
     city_name = request.args.get('name', '')
     country = request.args.get('country', '')
+    state = request.args.get('state', '')
     if not lat or not lon:
         return redirect(url_for('index'))
 
-    if country == 'US':
+    if country == 'US' or country == 'United States of America':
         units = 'imperial'
         temp_unit, speed_unit = '°F', 'mph'
     else:
@@ -416,6 +420,8 @@ def conditions():
 
     return render_template(page('conditions.html'),
         cityName = city_name,
+        stateName = state,
+        countryName = country,
         tempF = f"{round(now['temp'])}{temp_unit}",
         feelsF = f"{round(now['feels'])}{temp_unit}",
         dewpoint = f"{round(now['dewPoint'])}{temp_unit}",
