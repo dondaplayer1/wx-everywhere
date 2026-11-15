@@ -1,6 +1,9 @@
   <header class="bg-primary text-white py-2 mb-3">
     <div class="container d-flex flex-wrap align-items-center gap-2">
-      <a href="{{ url_for('index') }}" class="text-white text-decoration-none fs-4 fw-bold">WeatherEverywhere</a>
+      <a href="{{ url_for('index') }}" class="text-white text-decoration-none text-nowrap fs-4 fw-bold">
+        {# vertical-align puts the icon's middle on the text's visual middle (between x-height and cap height) #}
+        <img src="{{ url_for('favicon') }}" alt="" width="32" height="32" style="height: 1.25em; width: auto; vertical-align: -0.3em; margin-right: 0.35em;">WeatherEverywhere
+      </a>
       <nav class="nav">
         <a class="nav-link text-white" href="{{ url_for('index') }}">Home</a>
       </nav>

@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WeatherEverywhere</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}"></head>
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap.min.css') }}">
+  <style>
+    /* clear-sky gradient: light blue under the header fading to a hazy white horizon */
+    body {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #b9dcf7 0%, #dceefc 50%, #ffffff 100%);
+    }
+    /* Bootstrap's gray is too faint on blue; darken it so the subtitle/footer stay readable */
+    .text-body-secondary { color: #3d4f63 !important; }
+  </style>
+</head>
 <body>
 {% include "_header.html" %}
 
