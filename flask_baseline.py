@@ -274,10 +274,10 @@ def is_old_browser():
     if ios:
         return int(ios.group(2)) < 10
 
-    # bootstrap requires android 5 or newer
+    # bootstrap requires android 6 or newer
     android = re.search(r'Android (\d+)', ua)
     if android:
-        return int(android.group(1)) < 5
+        return int(android.group(1)) < 6
 
     # redirect other clients that probably won't render bootstrap...
     for name in ['MSIE ', 'Trident/', 'Opera Mini', 'MIDP', 'BlackBerry', 'BB10', 'Windows Phone', 'Symbian']:
