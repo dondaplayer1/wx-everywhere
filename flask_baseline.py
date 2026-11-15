@@ -66,7 +66,7 @@ day_template = {
         'cloudCover': None,
         'conditionMain': None,
         'conditionDesc': None,
-        'conditionImageCode': None, #unsure how to build these
+        'iconUrl': None, #unsure how to build these #i got it now
         'pop': None,
         'rainAmount': None, #these don't seem to be as values, rather some sort of percent?
         'snowAmount': None  #same here
@@ -86,7 +86,7 @@ hourly_template = {
         'cloudCover': None,
         'conditionMain': None,
         'conditionDesc': None,
-        'conditionImageCode': None, #unsure how to build these
+        'iconUrl': None, #unsure how to build these
         'pop': None,
         'rainAmount': None, #these don't seem to be as values, rather some sort of percent?
         'snowAmount': None  #same here
@@ -175,6 +175,8 @@ def get_1hour(lat, lon, units):
         hour['conditionMain'] = weather['main']
         hour['conditionDesc'] = weather['description']
         hour['pop'] = main.get('pop', 0)
+        iconCode = weather.get('icon', None)
+        hour['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t.png' #2x for a 128x128 image i think
         
         hourly_forecast[i] = hour
     return hourly_forecast
@@ -189,7 +191,7 @@ def get_1day(lat, lon, units): #daily forecasts
     for i in range(0,8):
         daily = day_template.copy()
 
-        main = data['data'][i]
+        main = data['data'][i + 1] #adding 1 here so it starts at the first day. so basically "0" in the dictionary is the first day of the forecast period, not actually day 0 (today)
         temp = main['temp']
         feels = main['feels_like']
         weather = main['weather'][0]
@@ -218,6 +220,8 @@ def get_1day(lat, lon, units): #daily forecasts
         daily['conditionMain'] = weather['main']
         daily['conditionDesc'] = weather['description']
         daily['pop'] = main.get('pop', 0) #if no pops listed put it as 0
+        iconCode = weather.get('icon', None)
+        daily['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t@2x.png'
 
         day_forecast[i] = daily
     return day_forecast
@@ -340,7 +344,7 @@ def conditions():
             'windSpeed': f"{round(day['windSpeed'])} {speed_unit}",
             'sunriseTime': local_time(day['sunrise'], offset, '%I:%M %p'), #create readable timestamp for sunrise
             'sunsetTime': local_time(day['sunset'], offset, '%I:%M %p'), #and sunset, from epoch
-            'uvIndex': day['uvIndex'],
+            'uvIndex': round(day['uvIndex'], 0) if day['uvIndex'] is not None else None,
         })
 
     hourly_forecast = []
@@ -358,10 +362,17 @@ def conditions():
             temp = f'{temp}, Feels Like {feels}'
         else:
             temp = temp
+            
+        #otherwise the main conditions are super boring
+        if hour['conditionMain'] == 'Clear':
+            cond = 'Clear'
+        else:
+            cond = hour['conditionDesc'].capitalize()
         hourly_forecast.append({
             'time': time,
             'temp': temp,
-            'conditionMain': hour['conditionMain'].capitalize(),
+            'conditionMain': cond,
+            'iconUrl': hour['iconUrl'], 
             'windReport': windReport,
             'pops': round(hour['pop'] * 100),
             'remarks': f'UV Index; {round(hour['uvIndex'], 0)}'
