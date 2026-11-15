@@ -181,8 +181,6 @@ def get_1hour(lat, lon, units):
         hourly_forecast[i] = hour
     return hourly_forecast
         
-    
-
 def get_1day(lat, lon, units): #daily forecasts
     r = requests.get(f'https://api.openweathermap.org/data/4.0/onecall/timeline/1day?lat={lat}&lon={lon}&units={units}&appid={api_key}')
     data = r.content.strip().decode('utf-8')
@@ -392,7 +390,7 @@ def conditions():
         updateTime = local_time(now['datetime'], offset, '%a %I:%M %p'), #turn date into local time using helper
         cityForecast = city_forecast,
         hourlyForecast = hourly_forecast
-    )
+)
 
 
 if __name__ == "__main__":
