@@ -55,6 +55,19 @@
       {% endfor %}
     </dl>
 
+    {% if alerts %}
+    <h2 id="alerts">Active Alerts</h2>
+    {% for alert in alerts %}
+    <div class="alert wx-alert">
+      <b>{{ alert.eventName }}</b><br>
+      <span class="note">Issued by {{ alert.senderName }} | {{ alert.startTime }} until {{ alert.endTime }}</span>
+      {% for paragraph in alert.paragraphs %}
+      <p>{{ paragraph }}</p>
+      {% endfor %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
     <p class="note"><a href="{{ request.full_path }}">Refresh</a> | <a href="{{ url_for('index') }}">Change location</a></p>
   </div>
 </body>

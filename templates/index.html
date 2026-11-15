@@ -12,23 +12,20 @@
     <div class="row justify-content-center">
       <div class="col-12 col-sm-10 col-md-8 col-lg-6">
         <h1 class="h3 text-center mt-4 mb-1">Get Your Weather</h1>
-        <p class="text-center text-body-secondary mb-4">City name, Postal or airport code - everywhere in the world.</p>
+        <p class="text-center text-body-secondary mb-4">Current Conditions, Hourly & Daily Forecasts, and Current Alerts</p>
 
         {% if error %}
         <div class="alert alert-warning" role="alert">{{ error }}</div>
         {% endif %}
 
-        {# No JavaScript: both buttons submit the same GET form, the server reads "action". #}
         <form action="{{ url_for('get_conditions') }}" method="get" class="card card-body shadow-sm">
           <label for="q" class="form-label visually-hidden">Location</label>
           <input type="text" id="q" name="q" value="{{ q or '' }}" class="form-control form-control-lg mb-3"
                  placeholder="ex. Mount Pleasant, MI &middot; Detroit &middot; KGRR" autocomplete="off" autofocus>
 
           <div class="d-flex gap-2">
-            {# "Submit" comes first in the DOM so pressing Enter in the text box searches;
-               order-first moves "Locate me" to the left visually. #}
             <button type="submit" name="action" value="search" class="btn btn-primary flex-fill">Submit</button>
-            <button type="submit" name="action" value="locate" class="btn btn-outline-secondary flex-fill order-first">Locate me</button>
+            <button type="submit" name="action" value="locate" class="btn btn-outline-secondary flex-fill order-first">Locate me!</button>
           </div>
         </form>
       </div>

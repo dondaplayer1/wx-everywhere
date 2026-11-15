@@ -11,17 +11,12 @@
 {% include "_header.html" %}
 
   <main class="container">
-   <!-- <form action="index.html" method="get" class="mb-3">
-      <label for="loc" class="form-label">City or ZIP</label>
-      <div class="input-group">
-        <input type="text" id="loc" name="loc" class="form-control" placeholder="e.g. 73301">
-        <button type="submit" class="btn btn-primary">Go</button>
-      </div>
-    </form>-->
-
-    <!--<div class="alert alert-warning" role="alert">
-      <strong>Wind Advisory</strong> until 6 PM. <a href="alerts.html" class="alert-link">Details</a>
-    </div>-->
+    {# one banner per active alert; "Details" jumps to the full text at the bottom of the page #}
+    {% for alert in alerts %}
+    <div class="alert alert-danger" role="alert">
+      <strong>{{ alert.eventName }}</strong> until {{ alert.endTime }}. <a href="#alert-{{ loop.index }}" class="alert-link">Details</a>
+    </div>
+    {% endfor %}
 
     <div class="card mb-3">
       <div class="card-header">Current Conditions - {{ cityName }}</div>
@@ -96,6 +91,23 @@
         {% endfor %}
     </dl>
   </main>
+
+  {% if alerts %}
+  <main class="container" id="alerts">
+    <h2 class="h4">Active Alerts - {{ cityName }}</h2>
+    {% for alert in alerts %}
+    <div class="card border-danger mb-3" id="alert-{{ loop.index }}">
+      <div class="card-header bg-danger-subtle"><strong>{{ alert.eventName }}</strong></div>
+      <div class="card-body">
+        <p class="small text-body-secondary">Issued by {{ alert.senderName }} &middot; {{ alert.startTime }} until {{ alert.endTime }}</p>
+        {% for paragraph in alert.paragraphs %}
+        <p>{{ paragraph }}</p>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </main>
+  {% endif %}
 
   <footer class="container py-3 small text-body-secondary">
     <a href="{{ request.full_path }}">Refresh</a> &middot; <a href="{{ url_for('index') }}">Change location</a>

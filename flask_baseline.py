@@ -25,6 +25,8 @@ with open('data/airports.csv', newline='', encoding='utf-8') as f:
                 airports[row['iata_code'].upper()] = place  # AUS
             if row['icao_code']:
                 airports[row['icao_code'].upper()] = place  # KAUS
+            if row['ident'] and row['ident'].upper() not in airports:
+                airports[row['ident'].upper()] = place  # KFFC (small airports often have no icao_code, just ident)
 
 # geolocation function
 def get_location(ip_address):
@@ -118,8 +120,33 @@ current = {
     'uvIndex': None,
     'conditionMain': None,
     'conditionDesc': None,
-    'iconUrl': None
+    'iconUrl': None,
+    'alerts': None,
 }
+
+def get_alert(id):
+    r = requests.get(f'https://api.openweathermap.org/data/4.0/onecall/alert/{id}?appid={api_key}')
+    data = r.content.strip().decode('utf-8')
+    data = json.loads(data)
+    alertDesc = None
+    for desc in data['description']:
+        if desc['language'][0:2] == 'en':
+            alertDesc = desc['description']
+            break
+    if alertDesc is None:
+        return None  # no english text for this alert
+    eventName = data['event'] or ', '.join(data.get('tags', [])) or 'Weather Alert'  # event is sometimes blank, tags say what it is
+    senderName = data['sender_name']
+    startTime = data['start']
+    endTime = data['end']
+    alert = {
+        'eventName': eventName,
+        'senderName': senderName,
+        'alertDesc': alertDesc,
+        'startTime': startTime,
+        'endTime': endTime
+    }
+    return alert
 
 def get_current(lat, lon, units):
     r = requests.get(f'https://api.openweathermap.org/data/4.0/onecall/current?lat={lat}&lon={lon}&units={units}&appid={api_key}')
@@ -146,6 +173,7 @@ def get_current(lat, lon, units):
     current['conditionDesc'] = weather.get('description', None)
     iconCode = weather.get('icon', None)
     current['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t@4x.png' #4x for higher res image
+    current['alerts'] = main.get('alerts', [])  # not there at all when nothing is active
     return current
 
 def get_1hour(lat, lon, units):
@@ -242,17 +270,17 @@ def is_old_browser():
     'True for browsers too old for bootstrap 5, like an iPhone 4 (iOS 7)'
     ua = request.headers.get('User-Agent', '')
 
-    # iPhone/iPad/iPod say "iPhone OS 7_1_2"; bootstrap 5 needs iOS 10 or newer
+    # bootstrap requires iOS 10 or newer
     ios = re.search(r'(iPhone|iPad|iPod).* OS (\d+)_', ua)
     if ios:
         return int(ios.group(2)) < 10
 
-    # old Android stock browsers say "Android 4.4"
+    # bootstrap requires android 5 or newer
     android = re.search(r'Android (\d+)', ua)
     if android:
         return int(android.group(1)) < 5
 
-    # Internet Explorer, Opera Mini, old feature phones and BlackBerrys
+    # redirect other clients that probably won't render bootstrap...
     for name in ['MSIE ', 'Trident/', 'Opera Mini', 'MIDP', 'BlackBerry', 'BB10', 'Windows Phone', 'Symbian']:
         if name in ua:
             return True
@@ -377,6 +405,16 @@ def conditions():
             'pops': round(hour['pop'] * 100),
             'remarks': f'UV Index; {round(hour['uvIndex'], 0)}'
         })
+    alerts = []
+    for alert_id in now['alerts']:
+        alert = get_alert(alert_id)
+        if alert is None:
+            continue
+        alert['startTime'] = local_time(alert['startTime'], offset, '%a %I:%M %p')
+        alert['endTime'] = local_time(alert['endTime'], offset, '%a %I:%M %p')
+        # NWS text is hard-wrapped; blank lines split paragraphs, single line breaks are just wrapping
+        alert['paragraphs'] = [p.replace('\n', ' ') for p in alert['alertDesc'].split('\n\n')]
+        alerts.append(alert)
 
     return render_template(page('conditions.html'),
         cityName = city_name,
@@ -391,7 +429,8 @@ def conditions():
         visibility = f"{now['visibility']} m" if now['visibility'] is not None else 'N/A', #error checking
         updateTime = local_time(now['datetime'], offset, '%a %I:%M %p'), #turn date into local time using helper
         cityForecast = city_forecast,
-        hourlyForecast = hourly_forecast
+        hourlyForecast = hourly_forecast,
+        alerts = alerts
     )
 
 
