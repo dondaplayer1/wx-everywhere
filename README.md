@@ -12,7 +12,7 @@ We decided to build with Flask because it's essentially a python-native web deve
 - API Limits: We ended up surpassing the daily free limit of 1,000 requests in testing, so we did have to purchase a subscription to the OneCall API. For every additional request over 1,000, it costs $0.0015, so this was not a big deal.
 - HTML compatibility: Some older clients were not able to render Bootstrap 5 (One client is an iPhone 4 running iOS 7.1.2, and Bootstrap requires at least iOS 10), so we had to build in some simpler, HTML native pages for older clients.
 ## Accomplishments that we're proud of
-WeatherEverywhere loads on average X-Y times *faster* than the USA's weather.gov, a service provided by the National Weather Service & the Department of Commerce.
+WeatherEverywhere loads on average 5-10 times *faster* than the USA's weather.gov, a service provided by the National Weather Service & the Department of Commerce.
 ## What we learned
 Building something like this is simple, so long as you don't try to fill it with features that bog down your bandwith.
 ## What's next for WeatherEverywhere
