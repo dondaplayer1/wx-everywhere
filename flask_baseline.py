@@ -335,7 +335,7 @@ def get_conditions():
         lon = results[0]['lon']
         country = results[0]['country'] #two letter country code
         fullCountry = countries.get(country).name
-        state = results[0]['state']
+        state = results[0].get('state', None)
 
     return redirect(url_for('conditions', lat=lat, lon=lon, name=city_name, country=fullCountry, state=state))
 
