@@ -49,24 +49,24 @@
   </main>
   <main class="container">
     <h1 class="h4">Hourly Forecast - {{ cityName }}</h1>
-    <table class="table table-striped">
+    <table class="table table-striped align-middle">
       <thead>
         <tr>
-          <th scope="col" class="text-nowrap" style="width: 10%;">Time</th>
-          <th scope="col" class="text-nowrap" style="width: 10%;">Temp</th>
+          <th scope="col" class="text-nowrap" style="width: 20%;">Time</th>
+          <th scope="col" class="text-nowrap" style="width: 20%;">Temp</th>
           <th scope="col" class="text-nowrap">Conditions</th>
-          <th scope="col" class="text-nowrap" style="width: 10%;">Wind</th>
-          <th scope="col" class="text-nowrap" style="width: 10%;">Precip</th>
+          <th scope="col" class="text-nowrap" style="width: 20%;">Wind</th>
+          <th scope="col" class="text-nowrap" style="width: 20%;">Precip</th>
         </tr>
       </thead>
       <tbody>
         {% for hour in hourlyForecast %}
           <tr>
-            <td class="text-nowrap">{{ hour.time }}</td>
-            <td class="text-nowrap">{{ hour.temp }}</td>
-            <td class="text-nowrap">{{ hour.conditionMain }} <img src="{{ hour.iconUrl }}"></td>
-            <td class="text-nowrap">{{ hour.windReport }}</td>
-            <td class="text-nowrap">{{ hour.pops }}%</td>
+            <td class="text-nowrap py-0">{{ hour.time }}</td>
+            <td class="text-nowrap py-0">{{ hour.temp }}</td>
+            <td class="text-nowrap py-0">{{ hour.conditionMain }} <img src="{{ hour.iconUrl }}"></td>
+            <td class="text-nowrap py-0">{{ hour.windReport }}</td>
+            <td class="text-nowrap py-0">{{ hour.pops }}%</td>
           </tr>
         {% endfor %}
       </tbody>
