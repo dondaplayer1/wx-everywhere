@@ -69,7 +69,7 @@ day_template = {
         'cloudCover': None,
         'conditionMain': None,
         'conditionDesc': None,
-        'iconUrl': None, #unsure how to build these #i got it now
+        'iconPath': None, #unsure how to build these #i got it now
         'pop': None,
         'rainAmount': None, #these don't seem to be as values, rather some sort of percent?
         'snowAmount': None  #same here
@@ -89,7 +89,7 @@ hourly_template = {
         'cloudCover': None,
         'conditionMain': None,
         'conditionDesc': None,
-        'iconUrl': None, #unsure how to build these
+        'iconPath': None, #unsure how to build these
         'pop': None,
         'rainAmount': None, #these don't seem to be as values, rather some sort of percent?
         'snowAmount': None  #same here
@@ -121,7 +121,7 @@ current = {
     'uvIndex': None,
     'conditionMain': None,
     'conditionDesc': None,
-    'iconUrl': None,
+    'iconPath': None,
     'alerts': None,
 }
 
@@ -173,7 +173,7 @@ def get_current(lat, lon, units):
     current['conditionMain'] = weather.get('main', None)
     current['conditionDesc'] = weather.get('description', None)
     iconCode = weather.get('icon', None)
-    current['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t@4x.png' #4x for higher res image
+    current['iconPath'] = f'/assets/icons/{iconCode}_t@4x.png' #4x for higher res image
     current['alerts'] = main.get('alerts', [])  # not there at all when nothing is active
     return current
 
@@ -205,7 +205,7 @@ def get_1hour(lat, lon, units):
         hour['conditionDesc'] = weather['description']
         hour['pop'] = main.get('pop', 0)
         iconCode = weather.get('icon', None)
-        hour['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t.png' #2x for a 128x128 image i think
+        hour['iconPath'] = f'/assets/icons/{iconCode}_t.png' #2x for a 128x128 image i think
         
         hourly_forecast[i] = hour
     return hourly_forecast
@@ -248,7 +248,7 @@ def get_1day(lat, lon, units): #daily forecasts
         daily['conditionDesc'] = weather['description']
         daily['pop'] = main.get('pop', 0) #if no pops listed put it as 0
         iconCode = weather.get('icon', None)
-        daily['iconUrl'] = f'https://rodrigokamada.github.io/openweathermap/images/{iconCode}_t@2x.png'
+        daily['iconPath'] = f'/assets/icons/{iconCode}_t@2x.png'
 
         day_forecast[i] = daily
     return day_forecast
@@ -298,6 +298,9 @@ def favicon():
     # browsers ask for /favicon.ico on their own, so no <link> tag is needed in the templates
     return send_from_directory('assets', 'wx_everywhere.png', mimetype='image/png')
 
+@app.route("/assets/<path:filename>")
+def assets(filename):
+    return send_from_directory("assets", filename)
 
 @app.route("/")
 def index():
@@ -406,7 +409,7 @@ def conditions():
             'temp': temp,
             'feels': feels,
             'conditionMain': cond,
-            'iconUrl': hour['iconUrl'], 
+            'iconPath': hour['iconPath'], 
             'windReport': windReport,
             'pops': round(hour['pop'] * 100),
             'remarks': f'UV Index; {round(hour['uvIndex'], 0)}'
@@ -428,7 +431,7 @@ def conditions():
         tempF = f"{round(now['temp'])}{temp_unit}",
         feelsF = f"{round(now['feels'])}{temp_unit}",
         dewpoint = f"{round(now['dewPoint'])}{temp_unit}",
-        currentImg = now['iconUrl'],
+        currentImg = now['iconPath'],
         wxDesc = now['conditionDesc'].capitalize(),
         relHum = now['humidity'],
         windReport = wind_report,

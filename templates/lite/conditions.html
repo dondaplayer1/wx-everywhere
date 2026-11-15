@@ -45,7 +45,7 @@
     <table>
       <tr><th>Time</th><th>Temp</th><th>Conditions</th><th>Wind</th><th>Precip</th></tr>
       {% for hour in hourlyForecast %}
-      <tr><td>{{ hour.time }}</td><td>{{ hour.temp }}</td><td>{{ hour.conditionMain }} <img src="{{ hour.iconUrl }}" alt=""></td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
+      <tr><td>{{ hour.time }}</td><td>{{ hour.temp }}</td><td>{{ hour.conditionMain }} <img src="{{ hour.iconPath }}" alt=""></td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
       {% endfor %}
     </table>
 
