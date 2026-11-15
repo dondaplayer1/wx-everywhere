@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>WeatherEverywhere - Weather for {{ cityName }}</title>
   {% include "lite/_style.html" %}
+  <style>
+    .wx-now { display: flex; align-items: center; gap: 12px; }
+    .wx-now p { margin: 0; }
+    .wx-now img { height: 3.5em; width: auto; }
+    td img { height: 2em; width: auto; vertical-align: middle; }
+  </style>
 </head>
 <body>
   <div class="bar">
@@ -17,9 +23,14 @@
   </div>
 
   <div class="wrap">
-    <h1>Current Conditions - {{ cityName }}</h1>
-    <p class="big">{{ tempF }}</p>
-    <p>{{ wxDesc }}</p>
+    <h1>Current Conditions - {{ cityName }}{% if stateName is not none and stateName != "" %}, {{ stateName }}{% endif %}, {{ countryName }}</h1>
+    <div class="wx-now">
+      <div>
+        <p class="big">{{ tempF }}</p>
+        <p>{{ wxDesc }}</p>
+      </div>
+      <img src="{{ currentImg }}" alt="current_icon">
+    </div>
     <table>
       <tr><th>Feels like</th><td>{{ feelsF }}</td></tr>
       <tr><th>Dewpoint</th><td>{{ dewpoint }}</td></tr>
@@ -34,7 +45,7 @@
     <table>
       <tr><th>Time</th><th>Temp</th><th>Conditions</th><th>Wind</th><th>Precip</th></tr>
       {% for hour in hourlyForecast %}
-      <tr><td>{{ hour.time }}</td><td>{{ hour.temp }}</td><td>{{ hour.conditionMain }}</td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
+      <tr><td>{{ hour.time }}</td><td>{{ hour.temp }}</td><td>{{ hour.conditionMain }} <img src="{{ hour.iconUrl }}" alt=""></td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
       {% endfor %}
     </table>
 
