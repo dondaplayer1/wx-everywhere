@@ -51,11 +51,23 @@
     <h1 class="h4">Hourly Forecast - {{ cityName }}</h1>
     <table class="table table-striped">
       <thead>
-        <tr><th scope="col">Time</th><th>Temperature</th><th>Conditions</th><th>Wind</th><th>Precipitation</th></tr>
+        <tr>
+          <th scope="col" class="text-nowrap" style="width: 10%;">Time</th>
+          <th scope="col" class="text-nowrap" style="width: 10%;">Temp</th>
+          <th scope="col" class="text-nowrap">Conditions</th>
+          <th scope="col" class="text-nowrap" style="width: 10%;">Wind</th>
+          <th scope="col" class="text-nowrap" style="width: 10%;">Precip</th>
+        </tr>
       </thead>
       <tbody>
         {% for hour in hourlyForecast %}
-            <tr><td>{{ hour.time }}</td><td>{{ hour.temp }} </td><td>{{ hour.conditionMain }}</td><td>{{ hour.windReport }}</td><td>{{ hour.pops }}%</td></tr>
+          <tr>
+            <td class="text-nowrap">{{ hour.time }}</td>
+            <td class="text-nowrap">{{ hour.temp }}</td>
+            <td class="text-nowrap">{{ hour.conditionMain }} <img src="{{ hour.iconUrl }}"></td>
+            <td class="text-nowrap">{{ hour.windReport }}</td>
+            <td class="text-nowrap">{{ hour.pops }}%</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
@@ -66,7 +78,7 @@
 
     <table class="table table-striped">
       <thead>
-        <tr><th scope="col">Day</th><th scope="col">Hi / Lo</th><th scope="col">Conditions</th><th scope="col">Rain</th></tr>
+        <tr><th scope="col">Day</th><th scope="col">Hi / Lo</th><th scope="col">Conditions</th><th scope="col">Precip</th></tr>
       </thead>
       <tbody>
         {% for day in cityForecast %}
@@ -80,7 +92,7 @@
         {% for day in cityForecast %}
             <dt>{{ day.dayName }}</dt>
             <dd>{{ day.wxType }}. High around {{ day.highT }}. Low around {{ day.lowT }}. {{ day.windDir }} winds at {{ day.windSpeed }}. {{ 'Chance of precipitation ' ~ day.precip ~ '%.' if day.precip > 0 else '' }}</dd>
-            <dd>Sunrise: {{ day.sunriseTime }} | Sunset: {{ day.sunsetTime }} | UV Index: {{ day.uvIndex }}</dd>
+            <dd>Sunrise: {{ day.sunriseTime }} | Sunset: {{ day.sunsetTime }} {% if day.uvIndex is not none %} | UV Index: {{ day.uvIndex }}{% endif %}</dd>
         {% endfor %}
     </dl>
   </main>
