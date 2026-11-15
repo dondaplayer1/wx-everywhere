@@ -17,3 +17,5 @@ WeatherEverywhere loads on average 5-10 times *faster* than the USA's weather.go
 Building something like this is simple, so long as you don't try to fill it with features that bog down your bandwith.
 ## What's next for WeatherEverywhere
 We would like to continue working on this project, and perhaps look in to adding some simple data visualizations for the hourly forecast and other variables.
+## AI Usage
+We used Claude Code and Google Gemini in a limited capacity, primarily for assistance working with Bootstrap and formatting the frontend. We also pulled code snippets and examples from AI tools, and modified them to our needs. 
